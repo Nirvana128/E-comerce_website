@@ -91,18 +91,18 @@ Security
 •	Protect sensitive data with encryption (e.g., passwords, payment information).
 •	Use multi-factor authentication (MFA) for admin accounts.
 •	Conduct regular vulnerability assessments and adhere to GDPR.
-Scalability
+Scalability:
 •	Design the system to support increasing numbers of: 
 o	Users (customers and admins).
 o	Products in inventory.
 o	Transactions per second (TPS).
-Availability
-•	Automatic backups every 24 hours.
-•	Ensure continuous service even during maintenance with fallback servers.
-Maintainability
+Availability:
+	Automatic backups every 24 hours.
+	Ensure continuous service even during maintenance with fallback servers.
+Maintainability:
 •	Modular codebase for easy updates and bug fixes.
 •	Comprehensive documentation for onboarding new developers.
-Interoperability
+Interoperability:
 •	Integration with third-party systems: 
 o	Payment gateways (e.g., PayPal, Stripe).
 o	Shipping providers for order tracking.
