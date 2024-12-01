@@ -1,0 +1,128 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+}
+
+/* Header and Banner Slider */
+.carousel img {
+    border-radius: 5px;
+    max-height: 500px;
+    object-fit: cover;
+}
+
+/* Information Section */
+.container {
+    margin-top: 20px;
+}
+
+.bg-success {
+    background-color: #28a745 !important;
+    border-radius: 10px;
+}
+
+.bg-success h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.fs-5 {
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+/* Main Content Section */
+h2.text-center {
+    color: #333;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.row.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.col-md-4, .col-sm-4 {
+    flex: 1 1 calc(33.33% - 20px);
+    max-width: calc(33.33% - 20px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    background: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.col-md-4:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Product Blocks */
+.goodnesssec {
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.goodnessseccont img {
+    max-width: 100px;
+    margin: 10px 0;
+    border-radius: 50%;
+}
+
+.goodnessseccont p {
+    font-size: 1.2rem;
+    color: #555;
+    font-weight: bold;
+}
+
+.smbg {
+    background-color: #ffebcd;
+}
+
+.curdbgpro {
+    background-color: #e0f7fa;
+}
+
+.buttermilk {
+    background-color: #f8bbd0;
+}
+
+/* Buttons and Links */
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .col-md-4, .col-sm-4 {
+        flex: 1 1 calc(50% - 20px);
+        max-width: calc(50% - 20px);
+    }
+}
+
+@media (max-width: 576px) {
+    .col-md-4, .col-sm-4 {
+        flex: 1 1 calc(100% - 20px);
+        max-width: calc(100% - 20px);
+    }
+
+    .bg-success h1 {
+        font-size: 2rem;
+    }
+
+    h2.text-center {
+        font-size: 1.5rem;
+    }
+}
