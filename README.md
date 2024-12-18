@@ -84,9 +84,7 @@ Open `http://127.0.0.1:8000/` in your browser.
 ## **Screenshots**  
 | **Home Page** | **Product Page** |  
 |---------------|------------------|  
-| ![Home Page](![image](https://github.com/user-attachments/assets/a41ed6db-9429-45a1-9622-48bb6305209b)
-) | ![Product Page](![image](https://github.com/user-attachments/assets/c3731139-818c-498c-9aa5-23e72daa0bcf)
-) |  
+| ![Home Page](![image](https://github.com/user-attachments/assets/a41ed6db-9429-45a1-9622-48bb6305209b)) | ![Product Page](![image](https://github.com/user-attachments/assets/c3731139-818c-498c-9aa5-23e72daa0bcf)) |  
 
 *Add actual screenshots here to make it visually appealing.*
 
