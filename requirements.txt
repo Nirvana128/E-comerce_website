@@ -1,0 +1,4 @@
+Django==5.1.4
+psycopg2==2.9.3
+razorpay==2.2.3
+paypalrestsdk==1.13.1
