@@ -1,3 +1,4 @@
+from urllib import request
 from django.db.models import Count
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
@@ -10,6 +11,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth.decorators import login_required 
 from django.utils.decorators import method_decorator
+import paypalrestsdk 
 # Create your views here.
 
 @login_required
@@ -208,64 +210,151 @@ def show_wishlist (request):
 @method_decorator(login_required, name='dispatch')
 class checkout(View):
     def get(self, request):
-        totalitem =0
-        wishitem=0
+        totalitem = 0
+        wishitem = 0
         if request.user.is_authenticated:
             totalitem = len(Cart.objects.filter(user=request.user))
             wishitem = len(Wishlist.objects.filter(user=request.user))
-        user=request.user
-        add=Customer.objects.filter(user=user)
-        cart_items=Cart.objects.filter(user=user)
-        famount=0
+
+        user = request.user
+        add = Customer.objects.filter(user=user)
+        cart_items = Cart.objects.filter(user=user)
+
+        famount = 0
         for p in cart_items:
-            value=p.quantity*p.product.discounted_price
-            famount= famount + value
-        totalamount=famount+40
-        razoramount= int (totalamount*100)
-        client= razorpay.Client(auth=(settings.RAZOR_KEY_ID,settings.RAZOR_KEY_SECRET))
-        data = { "amount": razoramount, "currency": "INR", "receipt": "order_rcptid_12"}
-        payment_response = client.order.create(data=data)
-        print(payment_response)
-        #{'id': 'order_KU0n5eKcEeilOm', 'entity': 'order', 'amount': 14500, 'amount_paid': 0, 'amount_due': 14500, 'currency': 'INR', 'receipt': 'order_rcptid_12', 'offer_id": None, 'status'created', 'attempts': 0, 'notes': [], 'created_at': 1665829122)
-        order_id= payment_response['id']
-        order_status = payment_response['status']
-        if order_status == 'created':
-            payment= Payment(
-                user=user, 
+            value = p.quantity * p.product.discounted_price
+            famount += value
+
+        totalamount = famount + 40
+        context = {
+            "add": add,
+            "cart_items": cart_items,
+            "totalamount": totalamount,
+            "totalitem": totalitem,
+            "wishitem": wishitem,
+        }
+        return render(request, "app1/checkout.html", context)
+
+    def post(self, request):
+        cust_id = request.POST.get("custid")
+        totalamount = request.POST.get("totamount")
+
+        # Validate selected customer address
+        try:
+            customer = Customer.objects.get(id=cust_id)
+        except Customer.DoesNotExist:
+            messages.error(request, "Invalid shipping address.")
+            return redirect("/checkout/")
+
+        # Configure PayPal
+        paypalrestsdk.configure(
+            {
+                "mode": "sandbox",  # Use "live" for production
+                "client_id": settings.PAYPAL_CLIENT_ID,
+                "client_secret": settings.PAYPAL_SECRET,
+            }
+        )
+
+        # Create PayPal Payment
+        payment = paypalrestsdk.Payment(
+            {
+                "intent": "sale",
+                "payer": {"payment_method": "paypal"},
+                "redirect_urls": {
+                    "return_url": request.build_absolute_uri(f"/paymentdone/?cust_id={cust_id}"),
+                    "cancel_url": request.build_absolute_uri("/checkout/"),
+                },
+                "transactions": [
+                    {
+                        "item_list": {
+                            "items": [
+                                {
+                                    "name": "Order",
+                                    "sku": "001",
+                                    "price": str(totalamount),
+                                    "currency": "EUR ",
+                                    "quantity": 1,
+                                }
+                            ]
+                        },
+                        "amount": {"total": str(totalamount), "currency": "EUR"},
+                        "description": "This is the payment description.",
+                    }
+                ],
+            }
+        )
+
+        if payment.create():
+            payment_id = payment.id
+            Payment.objects.create(
+                user=request.user,
                 amount=totalamount,
-                razorpay_order_id=order_id,
-                razorpay_payment_status = order_status
+                paypal_payment_id=payment_id,
             )
-            payment.save()
-        return render(request, 'app1/checkout.html',locals())
+            for link in payment.links:
+                if link.rel == "approval_url":
+                    return redirect(link.href)  # Redirect to PayPal for approval
+        else:
+            print(payment.error)  # Log error for debugging
+            messages.error(request, "Error creating PayPal payment. Please try again.")
+            return redirect("/checkout/")
 @login_required
 def payment_done(request):
-    order_id=request.GET.get('order_id')
-    payment_id=request.GET.get('payment_id')
-    cust_id=request.GET.get('cust_id')
-    #print("payment_done: oid",order_id," pid= payment_id," cid = ", cust_id)
-    user=request.user
-    #return redirect("orders")
-    customer= Customer.objects.get(id=cust_id)
-    #To update payment status and payment id
-    payment= Payment.objects.get(razorpay_order_id=order_id)
-    payment.paid = True
-    payment.razorpay_payment_id = payment_id
-    payment.save()
-    #To save order details
-    cart=Cart.objects.filter(user=user)
-    for c in cart:
-        OrderPlaced(user=user, customer =customer, product=c.product, quantity=c.quantity, payment= payment).save()
-        c.delete()
-    return redirect("orders")   
+    payment_id = request.GET.get("paymentId")
+    payer_id = request.GET.get("PayerID")
+    cust_id = request.GET.get("cust_id")
+
+    # Validate selected customer
+    try:
+        customer = Customer.objects.get(id=cust_id)
+    except Customer.DoesNotExist:
+        messages.error(request, "Invalid customer ID.")
+        return redirect("/checkout/")
+
+    # Execute PayPal payment
+    payment = paypalrestsdk.Payment.find(payment_id)
+    if payment.execute({"payer_id": payer_id}):
+        # Payment succeeded
+        payment_record = Payment.objects.get(paypal_payment_id=payment_id)
+        payment_record.paid = True
+        payment_record.save()
+
+        # Place orders
+        cart = Cart.objects.filter(user=request.user)
+        for c in cart:
+            OrderPlaced.objects.create(
+                user=request.user,
+                customer=customer,
+                product=c.product,
+                quantity=c.quantity,
+                payment=payment_record,
+            )
+            c.delete()
+
+        messages.success(request, "Payment successful! Order placed.")
+        return redirect("orders")
+    else:
+        print(payment.error)  # Log error for debugging
+        messages.error(request, "Payment failed. Please try again.")
+        return redirect("/checkout/") 
+
+    # #To save order details
+    # cart=Cart.objects.filter(user=user)
+    # for c in cart:
+    #     OrderPlaced(user=user, customer =customer, product=c.product, quantity=c.quantity, payment= payment).save()
+    #     c.delete()
+    # return redirect("orders")   
 @login_required
 def orders(request):
-    totalitem =0
-    wishitem =0
+    totalitem = 0
+    wishitem = 0
     if request.user.is_authenticated:
         totalitem = len(Cart.objects.filter(user=request.user))
         wishitem = len(Wishlist.objects.filter(user=request.user))
-    order_placed= OrderPlaced.objects.filter(user=request.user)
+
+    order_placed = OrderPlaced.objects.filter(user=request.user)
+    if not order_placed.exists():
+        messages.info(request, "You have no orders yet.")
     return render(request, 'app1/orders.html', locals())
 
 
@@ -354,7 +443,7 @@ def minus_wishlist (request):
 @login_required    
 def search(request):
     # Safely get the 'search' parameter with a default value of an empty string
-    query = request.GET.get('search', '')
+    query = request.GET.get('search', '').strip()
     
     totalitem = 0
     wishitem = 0
@@ -374,3 +463,14 @@ def search(request):
         'wishitem': wishitem,
         'product': product,
     })
+
+from paypalcheckoutsdk.core import PayPalHttpClient, SandboxEnvironment
+
+# Set up PayPal environment
+environment = SandboxEnvironment(
+    client_id="AZ0FqSbDnHa9zHfT1htCKiH-P9aU198A3v5c2LhE8c4pBmuvio-gkJkYr3adLIwPUZqr7A_7Yy975cxX",
+    client_secret="EGBOkY1bdfjmqcw5ZmENq8R_LA5szVb7FzzsWZWNvPduaXsvn0NbLC5fL3d16nrxQ9tXUVuVHwU0a7J8"
+)
+client = PayPalHttpClient(environment)
+
+print("PayPal SDK configured successfully!")

@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app1',
     'paypal.standard.ipn',
-    
 ]
 
 MIDDLEWARE = [
@@ -132,7 +131,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend"
 
+RAZOR_KEY_ID = "rzp_test_LxRqAytA5m1RFA"
+RAZOR_KEY_SECRET = "5IXsKXQ4NR89wHUZNs3GNVur"
 
-PAYPAL_CLIENT_ID = "AZ0FqSbDnHa9zHfT1htCKiH-P9aU198A3v5c2LhE8c4pBmuvio-gkJkYr3adLIwPUZqr7A_7Yy975cxX"
-PAYPAL_SECRET = "EGBOkY1bdfjmqcw5ZmENq8R_LA5szVb7FzzsWZWNvPduaXsvn0NbLC5fL3d16nrxQ9tXUVuVHwU0a7J8"
-
+PAYPAL_RECEIVER_EMAIL = 'sonalis.packtpub-test1@gmail.com'
+PAYPAL_TEST = True
