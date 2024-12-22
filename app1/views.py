@@ -3,7 +3,6 @@ from django.db.models import Count
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.views import View
-import razorpay
 from .models import Cart, Customer, OrderPlaced, Payment, Product, Wishlist
 from .forms import CustomerProfileForm, CustomerRegistrationForm
 from django.contrib import messages
@@ -473,5 +472,4 @@ environment = SandboxEnvironment(
     client_secret="EGBOkY1bdfjmqcw5ZmENq8R_LA5szVb7FzzsWZWNvPduaXsvn0NbLC5fL3d16nrxQ9tXUVuVHwU0a7J8"
 )
 client = PayPalHttpClient(environment)
-
 print("PayPal SDK configured successfully!")
