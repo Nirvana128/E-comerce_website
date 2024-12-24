@@ -88,8 +88,6 @@ Open `http://127.0.0.1:8000/` in your browser.
 ) | ![Product Page](![image](https://github.com/user-attachments/assets/a458d23d-2a54-4138-afc6-a419f67eb811)
 ) |  
 
-*Add actual screenshots here to make it visually appealing.*
-
 ---
 
 ## **Contributing**  
