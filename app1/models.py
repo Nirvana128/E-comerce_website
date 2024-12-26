@@ -84,26 +84,37 @@ STATUS_CHOICES=(
     ('Pending','Pending'),
 )
 
-class Payment (models.Model):
-    user= models. ForeignKey (User, on_delete=models.CASCADE)
-    amount= models. FloatField()
-    razorpay_order_id = models. CharField(max_length=100, blank=True, null=True)
-    razorpay_payment_status = models. CharField(max_length=100, blank=True, null=True)
-    razorpay_payment_id = models. CharField(max_length=100, blank=True, null=True)
-    paid = models. BooleanField(default=False) 
+class Payment(models.Model):
+    PAYMENT_METHODS = [
+        ('paypal', 'PayPal'),
+        ('cash', 'Cash'),
+    ]
 
-class OrderPlaced (models.Model):
-    user= models.ForeignKey (User, on_delete=models.CASCADE)
-    customer= models.ForeignKey(Customer, on_delete=models.CASCADE)
-    product = models. ForeignKey (Product, on_delete=models.CASCADE)
-    quantity=models. PositiveIntegerField(default=1)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.FloatField()
+    paypal_payment_id = models.CharField(max_length=100, null=True, blank=True)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHODS, default='paypal')  # Default set here
+    paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"Payment ({self.payment_method}) - Amount: {self.amount}"
+class OrderPlaced(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
     ordered_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
-    payment = models. ForeignKey (Payment, on_delete=models.CASCADE, default="")
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE)
+    
     @property
     def total_cost(self):
-        return self.quantity * self.product.discounted_price
+        # Safely handling the product's discounted price or regular price
+        return self.quantity * (self.product.discounted_price or self.product.price)
 
+    def __str__(self):
+        return f"Order ({self.status}) - Total: {self.total_cost}"
+    
 class Wishlist (models. Model):
     user = models. ForeignKey (User,on_delete=models.CASCADE)
     product = models. ForeignKey (Product, on_delete=models.CASCADE)
