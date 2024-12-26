@@ -46,4 +46,3 @@ class WishlistModelAdmin (admin.ModelAdmin):
         return format_html('<a href="{}">{}</a>', link, obj.product.title)
 
 admin.site.unregister(Group)
-
