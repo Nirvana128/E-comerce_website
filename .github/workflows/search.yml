@@ -1,53 +1,44 @@
-name: Search Index Workflow
+name: Run Django Tests and Install npm Dependencies
 
 on:
   push:
     branches:
       - main
-      - 'feature/**'
   pull_request:
     branches:
       - main
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '16'
+        node-version: 18
 
-    - name: Install Dependencies
+    - name: Install npm dependencies
+      working-directory: ./frontend  # Adjust this path to your package.json location
       run: npm install
 
-    - name: Run Tests
-      run: npm test
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-  update-index:
-    needs: build
-    runs-on: ubuntu-latest
+    - name: Set up database
+      run: |
+        python manage.py makemigrations --check --noinput
+        python manage.py migrate
 
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
-
-    - name: Install Dependencies
-      run: npm install
-
-    - name: Build Search Index
-      run: npm run build-search
-
-    - name: Deploy Search Index
-      env:
-        SEARCH_API_KEY: ${{ secrets.SEARCH_API_KEY }}
-      run: npm run deploy-search
+    - name: Run Django tests
+      run: python manage.py test test.login-test.py --verbosity 3
