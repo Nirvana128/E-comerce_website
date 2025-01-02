@@ -26,9 +26,6 @@ jobs:
       with:
         node-version: 18
 
-    - name: Install npm dependencies
-      working-directory: ./frontend  # Adjust this path to your package.json location
-      run: npm install
 
     - name: Install Python dependencies
       run: |
