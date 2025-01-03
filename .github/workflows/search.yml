@@ -1,4 +1,4 @@
-name: Run Django Tests and Install npm Dependencies
+name: Run Django Tests
 
 on:
   push:
@@ -21,24 +21,25 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Run database migrations
-      run: python manage.py migrate --noinput
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-
-
-    - name: Install Python dependencies
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip list  # Debug installed packages
+
+    - name: Confirm working directory
+      run: pwd
+
+    - name: Debug Python environment
+      run: |
+        echo $PYTHONPATH
+        python -c "import sys; print(sys.path)"
 
     - name: Set up database
-      run: |
-        python manage.py makemigrations --check --noinput
-        python manage.py migrate
+      run: python manage.py migrate --noinput
 
     - name: Run Django tests
       run: python manage.py test test.login-test.py --verbosity 3
+
+
+    
