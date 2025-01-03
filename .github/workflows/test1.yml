@@ -29,8 +29,7 @@ jobs:
     - name: Set environment variables
       run: echo "DJANGO_SETTINGS_MODULE=myproject.settings_test" >> $GITHUB_ENV
 
-    - name: Set up database
-      run: python manage.py migrate
+
 
     - name: Run Django tests
       run: python manage.py test test.login_test --verbosity 3
