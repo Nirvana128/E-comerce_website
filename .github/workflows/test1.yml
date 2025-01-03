@@ -27,14 +27,13 @@ jobs:
         pip install -r requirements.txt
 
     - name: Set environment variables
-      run: echo "DEBUG=true" >> $GITHUB_ENV
+      run: echo "DJANGO_SETTINGS_MODULE=myproject.settings_test" >> $GITHUB_ENV
 
     - name: Set up database
       run: python manage.py migrate
 
-    - name: Run Django test
-      run: python manage.py test test/login-test.py
-
+    - name: Run Django tests
+      run: python manage.py test test.login_test --verbosity 3
 
     - name: Debugging on failure
       if: failure()
@@ -42,3 +41,4 @@ jobs:
         echo "Tests failed with exit code $?"
         ls -la
         cat manage.py
+        cat db.sqlite3
